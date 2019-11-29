@@ -747,6 +747,8 @@ HAL_StatusTypeDef HAL_UART_Receive(UART_HandleTypeDef *huart, uint8_t *pData, ui
     huart->RxXferSize = Size;
     huart->RxXferCount = Size;
 
+    HAL_StatusTypeDef ret = HAL_OK;
+
     /* Check the remain data to be received */
     while(huart->RxXferCount > 0U)
     {
@@ -755,8 +757,16 @@ HAL_StatusTypeDef HAL_UART_Receive(UART_HandleTypeDef *huart, uint8_t *pData, ui
       {
         if(UART_WaitOnFlagUntilTimeout(huart, UART_FLAG_RXNE, RESET, tickstart, Timeout) != HAL_OK)
         {
-          return HAL_TIMEOUT;
+          ret = HAL_TIMEOUT;
+          break;
         }
+        if(huart->Instance->SR & (UART_FLAG_NE | UART_FLAG_FE | UART_FLAG_PE)) {
+          uint32_t dummy = huart->Instance->DR; // clears the flags
+          ret = HAL_TIMEOUT;
+          break;
+        }
+
+
         tmp = (uint16_t*)pData;
         if(huart->Init.Parity == UART_PARITY_NONE)
         {
@@ -774,7 +784,13 @@ HAL_StatusTypeDef HAL_UART_Receive(UART_HandleTypeDef *huart, uint8_t *pData, ui
       {
         if(UART_WaitOnFlagUntilTimeout(huart, UART_FLAG_RXNE, RESET, tickstart, Timeout) != HAL_OK)
         {
-          return HAL_TIMEOUT;
+          ret = HAL_TIMEOUT;
+          break;
+        }
+        if(huart->Instance->SR & (UART_FLAG_NE | UART_FLAG_FE | UART_FLAG_PE)) {
+          uint32_t dummy = huart->Instance->DR; // clears the flags
+          ret = HAL_TIMEOUT;
+          break;
         }
         if(huart->Init.Parity == UART_PARITY_NONE)
         {
@@ -794,7 +810,7 @@ HAL_StatusTypeDef HAL_UART_Receive(UART_HandleTypeDef *huart, uint8_t *pData, ui
     /* Process Unlocked */
     __HAL_UNLOCK(huart);
 
-    return HAL_OK;
+    return ret;
   }
   else
   {

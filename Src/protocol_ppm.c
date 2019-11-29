@@ -9,7 +9,7 @@
 #include "stm32f1xx_hal.h"
 #include "protocols.h"
 
-
+extern UART_HandleTypeDef huart2;
 void ProtoPpmReader(TIM_HandleTypeDef *htim) {
   ProtocolState state = INITIAL_INTERFRAME;
   int interFrame = 0;
@@ -46,12 +46,15 @@ void ProtoPpmReader(TIM_HandleTypeDef *htim) {
           chId = 0;
           state = FRAME;
         }
+        //else
+        //  HAL_UART_Transmit_DMA(&huart2, (uint8_t*)"pi\n", 3);
         break;
 
       case FRAME:
         if(pulse < 600 || pulse > 2400) {
           // invalid pulse width
           state = INITIAL_INTERFRAME;
+          //HAL_UART_Transmit_DMA(&huart2, (uint8_t*)"pp\n", 3);
         }
         else {
           if(chId < MAX_CHANNELS)

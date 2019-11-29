@@ -23,7 +23,6 @@ void ProtoIbusIa6Reader(UART_HandleTypeDef* huart) {
   ProtocolState state = INITIAL_INTERFRAME;
   uint8_t buf[FRAME_LEN];
   int num_fails = 0;
-  int len = 0;
   uint16_t checksum = 0;
   int idx = 0;
   int i;
@@ -58,11 +57,12 @@ void ProtoIbusIa6Reader(UART_HandleTypeDef* huart) {
       // read channels
       idx=1;
       i=0;
-      while(idx < len-3 /*exclude checksum and command byte*/) {
+      while(idx < FRAME_LEN-2 /*exclude checksum*/) {
+        uint16_t chVal = READ_UINT16(buf, idx);
         if(i < MAX_CHANNELS) {
-          channels[i] = READ_UINT16(buf, idx) & 0xfff;
+          channels[i] = chVal & 0xfff;
         }
-        checksum += channels[i];
+        checksum += chVal;
 
         idx += 2;
         i++;

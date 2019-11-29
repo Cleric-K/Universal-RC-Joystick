@@ -13,11 +13,11 @@
 #define INTERFRAME_MS 1
 #define MAX_FAILS 3
 
-#define READ_UINT16(buf, i) (buf[i] | (buf[i+1]<<8))
+#define READ_UINT16(buf, i) (buf[i] | ((buf[i+1] ) << 8))
 
 #define IBUS_CHANNELS_COMMAND 0x40
 
-
+extern UART_HandleTypeDef huart2;
 
 void ProtoIbusReader(UART_HandleTypeDef* huart) {
   ProtocolState state = INITIAL_INTERFRAME;
@@ -108,6 +108,7 @@ void ProtoIbusReader(UART_HandleTypeDef* huart) {
     }
 
     if(failed) {
+      //HAL_UART_Transmit_DMA(&huart2, (uint8_t*)"ib\n", 3);
       num_fails++;
       state = INITIAL_INTERFRAME;
     }

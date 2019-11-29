@@ -16,7 +16,7 @@
 #define SBUS_CH_BITS 11
 #define SBUS_CH_MASK  ((1<<SBUS_CH_BITS)-1);
 
-
+extern UART_HandleTypeDef huart2;
 
 static void DecodeChannels(uint8_t *buf) {
   int inputbits = 0;
@@ -96,6 +96,7 @@ void ProtoSbusReader(UART_HandleTypeDef* huart) {
     }
 
     if(failed) {
+      //HAL_UART_Transmit_DMA(&huart2, (uint8_t*)"sb\n", 3);
       num_fails++;
       state = INITIAL_INTERFRAME;
     }

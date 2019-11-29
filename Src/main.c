@@ -61,6 +61,8 @@
 TIM_HandleTypeDef htim1;
 
 UART_HandleTypeDef huart1;
+UART_HandleTypeDef huart2;
+DMA_HandleTypeDef hdma_usart2_tx;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
@@ -70,9 +72,10 @@ UART_HandleTypeDef huart1;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_USART1_UART_Init(void);
-
+static void MX_USART2_UART_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
@@ -80,6 +83,9 @@ static void MX_USART1_UART_Init(void);
 static void GPIO_Data_Out_Init(void);
 static void GPIO_Data_Out_DeInit(void);
 static void GPIO_USB_Reset();
+static void UART_Reset();
+static void UART_Set_115200_8N1();
+static void UART_Set_100000_8E2();
 
 /* USER CODE END PFP */
 
@@ -116,16 +122,19 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-
   GPIO_USB_Reset();
+  MX_DMA_Init();
   MX_USB_DEVICE_Init();
   MX_TIM1_Init();
   MX_USART1_UART_Init();
+  MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 
   HAL_TIM_Base_DeInit(&htim1);
   GPIO_Data_Out_Init();
 
+
+  HAL_UART_Transmit_DMA(&huart2, (uint8_t*)"hi\n", 3);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -140,15 +149,12 @@ int main(void)
 
     // IBUS
 
-    huart1.Init.BaudRate = 115200;
-    huart1.Init.WordLength = UART_WORDLENGTH_8B;
-    huart1.Init.StopBits = UART_STOPBITS_1;
-    huart1.Init.Parity = UART_PARITY_NONE;
-    HAL_UART_Init(&huart1);
-
     uartInvert = 0;
+
+    UART_Set_115200_8N1();
     ProtoIbusReader(&huart1);
 
+    UART_Set_115200_8N1();
     ProtoIbusIa6Reader(&huart1);
 
 
@@ -158,16 +164,12 @@ int main(void)
 
     // SBUS
 
-    huart1.Init.BaudRate = 100000;
-    huart1.Init.WordLength = UART_WORDLENGTH_9B;
-    huart1.Init.StopBits = UART_STOPBITS_2;
-    huart1.Init.Parity = UART_PARITY_EVEN;
-    HAL_UART_Init(&huart1);
-
+    UART_Set_100000_8E2();
     // try inverted first
     uartInvert = 1;
     ProtoSbusReader(&huart1);
 
+    UART_Set_100000_8E2();
     // try uninverted
     uartInvert = 0;
     ProtoSbusReader(&huart1);
@@ -180,12 +182,7 @@ int main(void)
 
     // Spektrum DSM
 
-    huart1.Init.BaudRate = 115200;
-    huart1.Init.WordLength = UART_WORDLENGTH_8B;
-    huart1.Init.StopBits = UART_STOPBITS_1;
-    huart1.Init.Parity = UART_PARITY_NONE;
-    HAL_UART_Init(&huart1);
-
+    UART_Set_115200_8N1();
     ProtoDsmReader(&huart1);
 
 
@@ -276,7 +273,7 @@ static void MX_TIM1_Init(void)
   htim1.Instance = TIM1;
   htim1.Init.Prescaler = 71;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim1.Init.Period = 0xffff;
+  htim1.Init.Period = 65535;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim1.Init.RepetitionCounter = 0;
   htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
@@ -342,6 +339,40 @@ static void MX_USART1_UART_Init(void)
 
 }
 
+/* USART2 init function */
+static void MX_USART2_UART_Init(void)
+{
+
+  huart2.Instance = USART2;
+  huart2.Init.BaudRate = 115200;
+  huart2.Init.WordLength = UART_WORDLENGTH_8B;
+  huart2.Init.StopBits = UART_STOPBITS_1;
+  huart2.Init.Parity = UART_PARITY_NONE;
+  huart2.Init.Mode = UART_MODE_TX;
+  huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart2.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart2) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+}
+
+/** 
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void) 
+{
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA1_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA1_Channel7_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel7_IRQn, 1, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel7_IRQn);
+
+}
+
 /** Configure pins as 
         * Analog 
         * Input 
@@ -357,8 +388,8 @@ static void MX_GPIO_Init(void)
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
-  __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
@@ -417,6 +448,47 @@ static void GPIO_USB_Reset() {
     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, i++&1);
   //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_12, GPIO_PIN_SET);
   HAL_GPIO_DeInit(GPIOA, GPIO_PIN_12);
+}
+
+
+static void UART_Reset() {
+  __HAL_RCC_USART1_FORCE_RESET();
+  __HAL_RCC_USART1_RELEASE_RESET();
+  memset(&huart1, 0, sizeof(huart1));
+}
+
+static void UART_Set_115200_8N1() {
+  UART_Reset();
+
+  huart1.Instance = USART1;
+  huart1.Init.BaudRate = 115200;
+  huart1.Init.WordLength = UART_WORDLENGTH_8B;
+  huart1.Init.StopBits = UART_STOPBITS_1;
+  huart1.Init.Parity = UART_PARITY_NONE;
+  huart1.Init.Mode = UART_MODE_RX;
+  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart1) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+}
+
+static void UART_Set_100000_8E2() {
+  UART_Reset();
+
+  huart1.Instance = USART1;
+  huart1.Init.BaudRate = 100000;
+  huart1.Init.WordLength = UART_WORDLENGTH_9B;
+  huart1.Init.StopBits = UART_STOPBITS_2;
+  huart1.Init.Parity = UART_PARITY_EVEN;
+  huart1.Init.Mode = UART_MODE_RX;
+  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart1) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
 }
 /* USER CODE END 4 */
 

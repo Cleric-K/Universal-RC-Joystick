@@ -48,8 +48,9 @@
 /* Exported functions ------------------------------------------------------- */
 
 void SysTick_Handler(void);
+void DMA1_Channel7_IRQHandler(void);
 void USB_LP_CAN1_RX0_IRQHandler(void);
-void TIM1_TRG_COM_IRQHandler(void);
+void USART2_IRQHandler(void);
 
 #ifdef __cplusplus
 }

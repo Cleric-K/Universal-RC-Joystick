@@ -36,7 +36,7 @@ static int channelMap[] = {
     0xff,
     0xff
 };
-
+extern UART_HandleTypeDef huart2;
 
 void ProtoDsmReader(UART_HandleTypeDef* huart) {
   ProtocolState state = INITIAL_INTERFRAME;
@@ -112,6 +112,7 @@ void ProtoDsmReader(UART_HandleTypeDef* huart) {
     }
 
     if(failed) {
+      //HAL_UART_Transmit_DMA(&huart2, (uint8_t*)"d\n", 3);
       num_fails++;
       state = INITIAL_INTERFRAME;
     }
