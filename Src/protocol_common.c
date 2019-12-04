@@ -1,7 +1,7 @@
 /*
  * protocol_common.c
  *
- *  Created on: 2.11.2018 ã.
+ *  Created on: 2.11.2018 ï¿½.
  *      Author: Cleric
  */
 #include "stm32f1xx_hal.h"
@@ -13,6 +13,16 @@ uint32_t lastSentReportTime;
 static JoyReport report;
 int uartInvert;
 
+/**
+ * Waits for interframe interval of silence on the UART RX
+ * 
+ * iframe says how many ms must the line be silent before it is considered interframe
+ * timeout is how many ms overall we are willing to wait for the silence, in case data is arriving
+ * If 0, try only once
+ * 
+ * Returns 0 if no interframe interval was found (data was arriving more frequently than iframe)
+ * Otherwise returns 1
+ */
 int ProtoWaitForInterframe(UART_HandleTypeDef* huart, uint32_t iframe, uint32_t timeout) {
   uint8_t buf[1];
   uint32_t time = HAL_GetTick() + timeout;
@@ -52,4 +62,11 @@ void BuildAndSendReport() {
 
 void ClearChannels() {
   memset(channels, 0, sizeof(channels));
+}
+
+void DebugLog(const char* buf) {
+  int len = 0;
+  const char* buf2 = buf;
+  while(*buf2++) len++;
+  HAL_UART_Transmit_DMA(&huart2, (uint8_t*)buf, len);
 }

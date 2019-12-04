@@ -133,8 +133,8 @@ int main(void)
   HAL_TIM_Base_DeInit(&htim1);
   GPIO_Data_Out_Init();
 
-
-  HAL_UART_Transmit_DMA(&huart2, (uint8_t*)"hi\n", 3);
+  #define MSG_INIT "Init\n"
+  HAL_UART_Transmit_DMA(&huart2, (uint8_t*)MSG_INIT, sizeof(MSG_INIT)-1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -198,6 +198,22 @@ int main(void)
 
     HAL_TIM_Base_DeInit(&htim1);
     GPIO_Data_Out_Init();
+
+
+
+
+
+    // FPort
+
+    UART_Set_115200_8N1();
+    // try inverted first
+    uartInvert = 1;
+    ProtoFportReader(&huart1);
+
+    UART_Set_115200_8N1();
+    // try uninverted
+    uartInvert = 0;
+    ProtoFportReader(&huart1);
   }
   /* USER CODE END 3 */
 

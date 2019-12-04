@@ -1,7 +1,7 @@
 /*
  * protocol_ppm.c
  *
- *  Created on: 5.11.2018 ã.
+ *  Created on: 5.11.2018 ï¿½.
  *      Author: Cleric
  */
 
@@ -9,13 +9,13 @@
 #include "stm32f1xx_hal.h"
 #include "protocols.h"
 
-extern UART_HandleTypeDef huart2;
 void ProtoPpmReader(TIM_HandleTypeDef *htim) {
   ProtocolState state = INITIAL_INTERFRAME;
   int interFrame = 0;
   int32_t pulse;
   int chId = 0;
   uint32_t timeout = HAL_GetTick() + 100;
+  int locked = 0;
 
   HAL_TIM_Base_Start(htim);
   HAL_TIM_IC_Start(htim, TIM_CHANNEL_1);
@@ -30,14 +30,20 @@ void ProtoPpmReader(TIM_HandleTypeDef *htim) {
       if(state == FRAME && chId > 0) {
         // got to the end of the frame
         BuildAndSendReport();
+
+        if(!locked) {
+          DebugLog("ppl\n");
+          locked = 1;
+        }
+
         timeout = HAL_GetTick() + 100;
         state = INITIAL_INTERFRAME;
       }
       interFrame = 1;
     }
 
-    if(htim->Instance->SR & TIM_SR_CC1IF) {
-      pulse = htim->Instance->CCR1;
+    if(htim->Instance->SR & TIM_SR_CC1IF) { // check if capture interrupt flag is set
+      pulse = htim->Instance->CCR1; // get the capture count (int flag is cleared)
 
       switch(state) {
       case INITIAL_INTERFRAME:
@@ -46,7 +52,7 @@ void ProtoPpmReader(TIM_HandleTypeDef *htim) {
           chId = 0;
           state = FRAME;
         }
-        //else
+        //else // pulses while NOT in interframe occur after invalid pulse length
         //  HAL_UART_Transmit_DMA(&huart2, (uint8_t*)"pi\n", 3);
         break;
 
@@ -66,5 +72,7 @@ void ProtoPpmReader(TIM_HandleTypeDef *htim) {
 
     }
   }
+
+  DebugLog("pp\n");
 }
 

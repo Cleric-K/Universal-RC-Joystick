@@ -1,7 +1,7 @@
 /*
  * protocol_sbus.c
  *
- *  Created on: 2.11.2018 ã.
+ *  Created on: 2.11.2018 ï¿½.
  *      Author: Cleric
  */
 
@@ -9,16 +9,13 @@
 #include "protocols.h"
 
 #define FRAME_LEN 25
-#define INTERFRAME_MS 1
 #define MAX_FAILS 3
 #define FRAME_FIRST_BYTE 0x0f
 
 #define SBUS_CH_BITS 11
 #define SBUS_CH_MASK  ((1<<SBUS_CH_BITS)-1);
 
-extern UART_HandleTypeDef huart2;
-
-static void DecodeChannels(uint8_t *buf) {
+void DecodeSbusChannels(uint8_t *buf) {
   int inputbits = 0;
   int inputbitsavailable = 0;
 
@@ -51,6 +48,7 @@ void ProtoSbusReader(UART_HandleTypeDef* huart) {
   int num_fails = 0;
   int failed;
   HAL_StatusTypeDef ret;
+  int locked = 0;
 
   while(1) {
     if(num_fails >= MAX_FAILS)
@@ -82,8 +80,13 @@ void ProtoSbusReader(UART_HandleTypeDef* huart) {
         break;
 
       // frame looks ok. Decode channels
-      DecodeChannels(&buf[1]);
+      DecodeSbusChannels(&buf[1]);
       BuildAndSendReport();
+
+      if(!locked) {
+        DebugLog(uartInvert ? "sbil\n" : "sbl\n");
+        locked = 1;
+      }
 
       // make sure there are no additional bytes after frame
       if(ProtoWaitForInterframe(huart, INTERFRAME_MS, 0)) {
@@ -96,7 +99,7 @@ void ProtoSbusReader(UART_HandleTypeDef* huart) {
     }
 
     if(failed) {
-      //HAL_UART_Transmit_DMA(&huart2, (uint8_t*)"sb\n", 3);
+      DebugLog(uartInvert ? "sbi\n" : "sb\n");
       num_fails++;
       state = INITIAL_INTERFRAME;
     }

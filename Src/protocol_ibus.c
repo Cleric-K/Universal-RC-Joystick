@@ -1,7 +1,7 @@
 /*
  * protocol_ibus.c
  *
- *  Created on: 3.11.2018 ã.
+ *  Created on: 3.11.2018 ï¿½.
  *      Author: Cleric
  */
 
@@ -10,14 +10,11 @@
 #include "protocols.h"
 
 #define MAX_FRAME_LEN 0xff
-#define INTERFRAME_MS 1
 #define MAX_FAILS 3
 
 #define READ_UINT16(buf, i) (buf[i] | ((buf[i+1] ) << 8))
 
 #define IBUS_CHANNELS_COMMAND 0x40
-
-extern UART_HandleTypeDef huart2;
 
 void ProtoIbusReader(UART_HandleTypeDef* huart) {
   ProtocolState state = INITIAL_INTERFRAME;
@@ -29,6 +26,7 @@ void ProtoIbusReader(UART_HandleTypeDef* huart) {
   int i;
   int failed;
   HAL_StatusTypeDef ret;
+  int locked = 0;
 
   while(1) {
     if(num_fails >= MAX_FAILS)
@@ -95,6 +93,11 @@ void ProtoIbusReader(UART_HandleTypeDef* huart) {
       if(checksum == READ_UINT16(buf, idx)) {
         // checksum valid
         BuildAndSendReport();
+
+        if(!locked) {
+          DebugLog("ibl\n");
+          locked = 1;
+        }
       }
 
       // make sure there are no additional bytes after frame
@@ -108,7 +111,7 @@ void ProtoIbusReader(UART_HandleTypeDef* huart) {
     }
 
     if(failed) {
-      //HAL_UART_Transmit_DMA(&huart2, (uint8_t*)"ib\n", 3);
+      DebugLog("ib\n");
       num_fails++;
       state = INITIAL_INTERFRAME;
     }

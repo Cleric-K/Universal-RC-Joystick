@@ -1,7 +1,7 @@
 /*
  * proto_dsm.c
  *
- *  Created on: 4.11.2018 ã.
+ *  Created on: 4.11.2018 ï¿½.
  *      Author: Cleric
  */
 
@@ -36,7 +36,6 @@ static int channelMap[] = {
     0xff,
     0xff
 };
-extern UART_HandleTypeDef huart2;
 
 void ProtoDsmReader(UART_HandleTypeDef* huart) {
   ProtocolState state = INITIAL_INTERFRAME;
@@ -44,6 +43,7 @@ void ProtoDsmReader(UART_HandleTypeDef* huart) {
   int num_fails = 0;
   int i;
   int failed;
+  int locked = 0;
 
   ClearChannels();
 
@@ -101,6 +101,11 @@ void ProtoDsmReader(UART_HandleTypeDef* huart) {
 
       BuildAndSendReport();
 
+      if(!locked) {
+        DebugLog("dl\n");
+        locked = 1;
+      }
+
       // make sure there are no additional bytes after frame
       if(ProtoWaitForInterframe(huart, INTERFRAME_MS, 0)) {
         // success
@@ -112,7 +117,7 @@ void ProtoDsmReader(UART_HandleTypeDef* huart) {
     }
 
     if(failed) {
-      //HAL_UART_Transmit_DMA(&huart2, (uint8_t*)"d\n", 3);
+      DebugLog("d\n");
       num_fails++;
       state = INITIAL_INTERFRAME;
     }

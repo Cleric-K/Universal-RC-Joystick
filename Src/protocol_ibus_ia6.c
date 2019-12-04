@@ -1,7 +1,7 @@
 /*
  * protocol_ibus_ia6.c
  *
- *  Created on: 4.11.2018 ã.
+ *  Created on: 4.11.2018 ï¿½.
  *      Author: Cleric
  */
 
@@ -10,7 +10,6 @@
 #include "protocols.h"
 
 #define FRAME_LEN 31
-#define INTERFRAME_MS 1
 #define MAX_FAILS 3
 
 #define IBUS_MAGIC 0x55
@@ -27,6 +26,7 @@ void ProtoIbusIa6Reader(UART_HandleTypeDef* huart) {
   int idx = 0;
   int i;
   int failed;
+  int locked = 0;
 
   while(1) {
     if(num_fails >= MAX_FAILS)
@@ -72,6 +72,10 @@ void ProtoIbusIa6Reader(UART_HandleTypeDef* huart) {
       if(checksum == READ_UINT16(buf, idx)) {
         // checksum valid
         BuildAndSendReport();
+        if(!locked) {
+          DebugLog("i6l\n");
+          locked = 1;
+        }
       }
 
       // make sure there are no additional bytes after frame
@@ -85,6 +89,7 @@ void ProtoIbusIa6Reader(UART_HandleTypeDef* huart) {
     }
 
     if(failed) {
+      DebugLog("i6\n");
       num_fails++;
       state = INITIAL_INTERFRAME;
     }
