@@ -47,7 +47,7 @@ void BuildAndSendReport() {
   // HID uses top left coordinates origin for X, Y
   // while radios have bottom left origin
   // so invert Y
-  report.axes[1] = 0x7fff - report.axes[1];
+  //report.axes[1] = 0x7fff - report.axes[1];
 
   uint8_t buttons = 0;
   for(int i=0; i < NUM_BUTTONS; i++) {
@@ -69,4 +69,8 @@ void DebugLog(const char* buf) {
   const char* buf2 = buf;
   while(*buf2++) len++;
   HAL_UART_Transmit_DMA(&huart2, (uint8_t*)buf, len);
+}
+
+void ResetWatchdog() {
+  HAL_IWDG_Refresh(&hiwdg);
 }

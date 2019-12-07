@@ -26,6 +26,8 @@ void ProtoPpmReader(TIM_HandleTypeDef *htim) {
     if(HAL_GetTick() > timeout)
       break;
 
+    ResetWatchdog();
+
     if(htim->Instance->CNT > 3000) {
       if(state == FRAME && chId > 0) {
         // got to the end of the frame

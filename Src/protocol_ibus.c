@@ -32,6 +32,8 @@ void ProtoIbusReader(UART_HandleTypeDef* huart) {
     if(num_fails >= MAX_FAILS)
       break;
 
+    ResetWatchdog();
+
     // assume failed by default
     failed = 1;
 
@@ -98,11 +100,7 @@ void ProtoIbusReader(UART_HandleTypeDef* huart) {
           DebugLog("ibl\n");
           locked = 1;
         }
-      }
 
-      // make sure there are no additional bytes after frame
-      if(ProtoWaitForInterframe(huart, INTERFRAME_MS, 0)) {
-        // success
         failed = 0;
         num_fails = 0;
       }

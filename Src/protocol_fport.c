@@ -17,6 +17,32 @@
 #define CRC_CORRECT 0xff
 
 
+static int readEscapedStream(UART_HandleTypeDef* huart, uint8_t *buf, int num) {
+  int ret, i = -1;
+  while(++i < num) {
+    uint8_t byte;
+
+    ret = HAL_UART_Receive(huart, &byte, 1, FRAME_TIMEOUT);
+    if(ret != HAL_OK)
+      break;
+    if(byte == ESCAPE_BYTE) {
+      // escape byte, we need one more
+      ret = HAL_UART_Receive(huart, &byte, 1, FRAME_TIMEOUT);
+      if(ret != HAL_OK)
+        break;
+      buf[i] = byte ^ ESCAPE_MASK;
+    }
+    else {
+      buf[i] = byte;
+    }
+  }
+
+  return ret == HAL_OK;
+}
+
+
+
+
 void ProtoFportReader(UART_HandleTypeDef* huart) {
   ProtocolState state = INITIAL_INTERFRAME;
   uint8_t buf[FRAME_LEN];
@@ -28,6 +54,8 @@ void ProtoFportReader(UART_HandleTypeDef* huart) {
   while(1) {
     if(num_fails >= MAX_FAILS)
       break;
+
+    ResetWatchdog();
 
     // assume failed by default
     failed = 1;
@@ -45,8 +73,8 @@ void ProtoFportReader(UART_HandleTypeDef* huart) {
 
 
     case FRAME:
-      // get first two bytes
-      ret = HAL_UART_Receive(huart, buf, 2, FRAME_TIMEOUT);
+      // get first byte
+      ret = HAL_UART_Receive(huart, buf, 1, FRAME_TIMEOUT);
       if(ret != HAL_OK)
         break;
 
@@ -54,30 +82,19 @@ void ProtoFportReader(UART_HandleTypeDef* huart) {
       if(buf[0] != MAGIC_BYTE)
         break;
 
-      int data_len = buf[1];
-      int i = 1;
-      data_len += 4; // add the first border byte + len + crc + final border byte
-
-      while(++i < data_len) {
-        uint8_t byte;
-
-        ret = HAL_UART_Receive(huart, &byte, 1, FRAME_TIMEOUT);
-        if(ret != HAL_OK)
-          break;
-        if(byte == ESCAPE_BYTE) {
-          // escape byte, we need one more
-          ret = HAL_UART_Receive(huart, &byte, 1, FRAME_TIMEOUT);
-          if(ret != HAL_OK)
-            break;
-          buf[i] = byte ^ ESCAPE_MASK;
-        }
-        else {
-          buf[i] = byte;
-        }
-      }
-      if(ret != HAL_OK)
+      // get the length byte
+      if(!readEscapedStream(huart, &buf[1], 1))
         break;
 
+      int data_len = buf[1];
+      int i = 1;
+      data_len += 4; // full frame length: add the first magic byte + len + crc + final magic byte
+
+      // get the remaining frame
+      if(!readEscapedStream(huart, &buf[2], data_len - 2 /* exclude first magic and length byte */))
+        break;
+
+      // check end magic byte
       if(buf[data_len - 1] != MAGIC_BYTE)
         break;
 
@@ -120,5 +137,3 @@ void ProtoFportReader(UART_HandleTypeDef* huart) {
     }
   }
 }
-
-

@@ -22,6 +22,7 @@ extern uint16_t channels[MAX_CHANNELS];
 extern uint32_t lastSentReportTime;
 extern int uartInvert;
 extern UART_HandleTypeDef huart2;
+extern IWDG_HandleTypeDef hiwdg;
 
 int ProtoWaitForInterframe(UART_HandleTypeDef* huart, uint32_t iframe, uint32_t timeout);
 void BuildAndSendReport();
@@ -36,5 +37,6 @@ void ProtoPpmReader(TIM_HandleTypeDef*);
 void ProtoFportReader(UART_HandleTypeDef*);
 
 void DebugLog(const char* buf);
+void ResetWatchdog();
 
 #endif /* INC_PROTOCOLS_H_ */
