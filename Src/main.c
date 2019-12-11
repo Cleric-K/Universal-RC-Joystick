@@ -105,6 +105,9 @@ int main(void)
 {
   /* USER CODE BEGIN 1 */
 
+  int isPorReset = __HAL_RCC_GET_FLAG(RCC_FLAG_PORRST);
+  __HAL_RCC_CLEAR_RESET_FLAGS();
+
   /* USER CODE END 1 */
 
   /* MCU Configuration----------------------------------------------------------*/
@@ -125,7 +128,9 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  GPIO_USB_Reset();
+  if(!isPorReset) {
+    GPIO_USB_Reset();
+  }
   MX_DMA_Init();
   MX_USB_DEVICE_Init();
   MX_TIM1_Init();
@@ -138,6 +143,9 @@ int main(void)
   GPIO_Data_Out_Init();
 
   DebugLog("Init\n");
+  if(!isPorReset) {
+    DebugLog("USB Reset\n");
+  }
   /* USER CODE END 2 */
 
   /* Infinite loop */

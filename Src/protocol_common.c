@@ -68,7 +68,7 @@ void DebugLog(const char* buf) {
   int len = 0;
   const char* buf2 = buf;
   while(*buf2++) len++;
-  HAL_UART_Transmit_DMA(&huart2, (uint8_t*)buf, len);
+  while(HAL_UART_Transmit_DMA(&huart2, (uint8_t*)buf, len) == HAL_BUSY);
 }
 
 void ResetWatchdog() {
