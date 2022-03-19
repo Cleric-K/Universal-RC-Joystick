@@ -10,7 +10,7 @@
   * inserted by the user or by software development tools
   * are owned by their respective copyright owners.
   *
-  * Copyright (c) 2019 STMicroelectronics International N.V. 
+  * Copyright (c) 2022 STMicroelectronics International N.V. 
   * All rights reserved.
   *
   * Redistribution and use in source and binary forms, with or without 
@@ -59,10 +59,10 @@
 
 /* Private define ------------------------------------------------------------*/
 
-#define DATA_OUT_Pin GPIO_PIN_15
-#define DATA_OUT_GPIO_Port GPIOB
-#define DATA_IN_Pin GPIO_PIN_8
-#define DATA_IN_GPIO_Port GPIOA
+#define DATA_OUT_Pin GPIO_PIN_4
+#define DATA_OUT_GPIO_Port GPIOA
+#define DATA_IN_Pin GPIO_PIN_5
+#define DATA_IN_GPIO_Port GPIOB
 
 /* ########################## Assert Selection ############################## */
 /**

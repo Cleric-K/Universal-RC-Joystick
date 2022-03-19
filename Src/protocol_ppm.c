@@ -18,7 +18,7 @@ void ProtoPpmReader(TIM_HandleTypeDef *htim) {
   int locked = 0;
 
   HAL_TIM_Base_Start(htim);
-  HAL_TIM_IC_Start(htim, TIM_CHANNEL_1);
+  HAL_TIM_IC_Start(htim, TIM_CHANNEL_2);
   htim->Instance->CNT = 0;
   ClearChannels();
 
@@ -44,8 +44,8 @@ void ProtoPpmReader(TIM_HandleTypeDef *htim) {
       interFrame = 1;
     }
 
-    if(htim->Instance->SR & TIM_SR_CC1IF) { // check if capture interrupt flag is set
-      pulse = htim->Instance->CCR1; // get the capture count (int flag is cleared)
+    if(htim->Instance->SR & TIM_SR_CC2IF) { // check if capture interrupt flag is set
+      pulse = htim->Instance->CCR2; // get the capture count (int flag is cleared)
 
       switch(state) {
       case INITIAL_INTERFRAME:

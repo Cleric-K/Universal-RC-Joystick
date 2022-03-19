@@ -21,7 +21,7 @@ typedef enum {
 extern uint16_t channels[MAX_CHANNELS];
 extern uint32_t lastSentReportTime;
 extern int uartInvert;
-extern UART_HandleTypeDef huart2;
+extern UART_HandleTypeDef huart1;
 extern IWDG_HandleTypeDef hiwdg;
 
 int ProtoWaitForInterframe(UART_HandleTypeDef* huart, uint32_t iframe, uint32_t timeout);

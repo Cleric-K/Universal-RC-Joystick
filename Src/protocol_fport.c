@@ -18,7 +18,7 @@
 
 
 static int readEscapedStream(UART_HandleTypeDef* huart, uint8_t *buf, int num) {
-  int ret, i = -1;
+  int ret = 0, i = -1;
   while(++i < num) {
     uint8_t byte;
 
