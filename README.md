@@ -58,7 +58,7 @@ Most people don't really need to flash STM32 chips in their day to day life so b
 #### b. Using Arduino for its UART converter
 If you don't have a UART converted but you have an Arduino board, you can use that too because it comes with UART converter. But there are few things to take into account:
 > !!! Please read and understand the points below, otherwise you may damage your devices!
-1. Flash an _empty sketch_ to the Arduino first! This is needed to make sure that all pins are in their default _input_ state (high impedance). If some of the pins are set to outputs you may burn something (if two pins which are connected together, outputting `0` and `1` respectively, they are practically shorted!). We need the Arduino board _only_ for its UART converter.
+1. Flash an _empty sketch_ to the Arduino first! This is needed to make sure that all pins are in their default _input_ state (high impedance). If some of the pins are set to outputs you may burn something (if two pins which are connected together, output `0` and `1` respectively, they are practically shorted!). We need the Arduino board _only_ for its UART converter.
 2. You need to connect in the following way:
 
 STM32 | Arduino
@@ -86,10 +86,12 @@ Assuming that your UART converter is connected, there are few ways in which you 
 
 > Note! There are some buggy clones which have faulty `BOOT0` pin. To check if that is the case, make sure your board is _powered_ and `BOOT0` is in the `1` position then turn the board around and measure the voltage across the `R3` resistor. Normally it should read 0V. If you see something like 2.3V you have one from the faulty batch.
 >
-> Don't worry you can still flash but you'll need some manual work. Take a pair of tweezers or something else with which you can conveniently short the resistor (verify that there's continuity between the tips of the tweezers with your multimeter).
+> Don't worry you can still flash but you'll need some manual work. Take a pair of tweezers or something else with which you can conveniently short the resistor (make sure your tweezers are conductive - verify that there's continuity between the tips of the tweezers with your multimeter).
 > Hold the board with one hand and prepare a finger on the `RESET` button. With your other hand short the resistor and _then_ press the `RESET` button. After that you can remove the shorting. The chip should now be in bootloader mode and you can perform the flashing procedure.
 > 
 > ![image](https://user-images.githubusercontent.com/9365881/159188923-cbd67270-7a5f-4a95-95a9-5b6df822e348.png)
+
+After you're done return `BOOT0` to its original `0` position.
 
 ## How to use?
 
@@ -103,7 +105,7 @@ Receiver | STM32
 GND | GND
 DATA | B5
 
-> Note that if you're using DSM receiver you should use +3.3V instead of 5V. Also the receiver should be already bound to the transmitter.
+> Note that if you're using DSM receiver you should use 3.3V instead of 5V. Also the receiver should be already bound to the transmitter.
 
 ### 2. Bridge `A3` and `A4`
 
@@ -127,7 +129,7 @@ The firmware uses the standard ST provided hardware ids - VID 0483 PID 5710. It 
 
 ### 4. Set up your transmitter
 
-URCJ is a zero-configuration tool. The type of the received is _automatically_ detected. There are two modes of the LED:
+URCJ is a zero-configuration tool. The type of the receiver is _automatically_ detected. There are two modes of the LED:
 
 LED | Meaning
 ---|---
