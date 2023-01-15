@@ -18,7 +18,7 @@ Your transmitter sends wirelessly the signal to the receiver, the receiver passe
 
 ## What do I need?
 
-1. A STM32F103 Blue pill board. Clones can be found for very cheap ($2-$3 at [AliExpress](https://www.aliexpress.com/wholesale?SearchText=stm32f103+board) for example). The STM32F103**C6**T6 (note the **C6**) is cheaper and it should work but I have tested only the C8 version at this moment. I have C6 on the way so I'll confirm later.
+1. A STM32F103 Blue pill board. Clones can be found for very cheap ($2-$3 at [AliExpress](https://www.aliexpress.com/wholesale?SearchText=stm32f103+board) for example). The STM32F103**C6**T6 (note the **C6**) is cheaper and also works.
 2. A micro USB cable
 3. ST-Link or UART converter for flashing (see [below](#how-to-flash)).
 4. A RC receiver
@@ -36,7 +36,7 @@ Analog:
 
 ## How to flash?
 
-First head over to the [releases](../../releases) section and download the `.hex` file.
+First head over to the [releases](../../releases) section and download the appropriate `.hex` file depending on whether you have the **C6** or **C8** board.
 
 ### 1. Using ST-Link
 
